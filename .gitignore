@@ -39,3 +39,11 @@ checks/__pycache__/
 通缉九人台词_*.md
 persona-map.json
 persona-map.md
+
+# ---- 本地工作文档（交接/需求/复查，不进仓库）----
+_local_docs/
+
+# ---- 本地临时产物 ----
+*.bak
+封面发布_*/
+_live_tune.py
