@@ -102,6 +102,7 @@
 <header>
   <h1>对话音效控制台</h1>
   <span class="badge" id="status">连接中…</span>
+  <span class="badge" id="buildTag" title="页面版本：用来确认浏览器有没有加载到最新代码">build 3</span>
   <span id="syncStatus" role="status" aria-live="polite">正在连接同步…</span>
   <span class="spacer"></span>
   <label class="chk"><input type="checkbox" id="autoplay" checked> 改动即试听</label>
@@ -674,7 +675,10 @@ function diffPaths(base, cur, prefix, out){
   const isObj = v => v !== null && typeof v === "object" && !Array.isArray(v);
   if (isObj(base) && isObj(cur)){
     const keys = new Set([...Object.keys(base), ...Object.keys(cur)]);
-    for (const key of keys) diffPaths(base[key], cur[key], prefix.concat(key), out);
+    for (const key of keys){
+      if (!(key in cur)){ out.push([prefix.concat(key), DELETED]); continue; }
+      diffPaths(base[key], cur[key], prefix.concat(key), out);
+    }
   } else if (Array.isArray(base) && Array.isArray(cur)){
     if (base.length !== cur.length) out.push([prefix, cur]);
     else base.forEach((item, index)=>diffPaths(item, cur[index], prefix.concat(index), out));
@@ -682,6 +686,20 @@ function diffPaths(base, cur, prefix, out){
     out.push([prefix, cur]);
   }
   return out;
+}
+
+// 删除哨兵：diff 时发现某个键在新状态里没有了，就用它标记"要删掉"
+const DELETED = Object.freeze({__deleted: true});
+
+function deleteAtPath(root, path){
+  if (path.length === 0) return root;
+  let node = root;
+  for (let i = 0; i < path.length - 1; i++){
+    if (node[path[i]] === null || typeof node[path[i]] !== "object") return root;
+    node = node[path[i]];
+  }
+  delete node[path[path.length - 1]];
+  return root;
 }
 
 function setPath(root, path, value){
@@ -768,8 +786,23 @@ async function saveSharedState(retried, baseRevisionOverride, overrideState){
   if (!overrideState && localVersion === savedVersion) return;
   saving = true;
   const version = localVersion;
-  const payloadState = overrideState || captureState();
-  const baseRevision = baseRevisionOverride !== undefined ? baseRevisionOverride : serverRevision;
+  let payloadState = overrideState || captureState();
+  let baseRevision = baseRevisionOverride !== undefined ? baseRevisionOverride : serverRevision;
+
+  // 主动三方合并：保存前先拿服务端最新状态，只把"我相对基线改过的字段"盖上去。
+  // 之前是整份写回，谁最后保存谁赢——同时改不同字段会互相覆盖（外部 agent 改材质被页面盖回）。
+  if (!overrideState && baseState){
+    try{
+      const snapshot = await stateRequest("GET");
+      const merged = cloneState(snapshot.state);
+      for (const [path, value] of diffPaths(baseState, payloadState, [], [])){
+        if (value === DELETED) deleteAtPath(merged, path);
+        else setPath(merged, path, value);
+      }
+      payloadState = merged;
+      baseRevision = snapshot.revision;
+    }catch(e){ /* 拿不到就退回原来的整份写回 */ }
+  }
   try{
     const response = await fetch("/api/state", {method:"PUT",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({baseRevision,source:"browser",state:payloadState})});

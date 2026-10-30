@@ -91,13 +91,28 @@ internal static class VoiceBank
         var previousDocs = sameRoot ? new Dictionary<string, JObject>(packDocs) : new Dictionary<string, JObject>();
         // Never tear down a working library because a rescan cannot read its directory.
         var packDir = Path.Combine(nextRoot, "packs");
-        string[] files;
-        try { files = System.IO.Directory.GetFiles(packDir, "*.json"); }
+        // 音色包可以放在别的 Mod 里（娘化包就是独立的纯数据 Mod）。
+        // 先扫自己的 packs/，再把 Mods/ 下所有兄弟 Mod 的 packs/ 也扫进来。
+        var files = new List<string>();
+        try { files.AddRange(System.IO.Directory.GetFiles(packDir, "*.json")); }
         catch (Exception e)
         {
             Debug.LogWarning("[DialogueBlips] 扫描失败，保留当前声音库：" + e.Message);
             return;
         }
+        try
+        {
+            var modsRoot = Path.GetDirectoryName(nextRoot.TrimEnd('\\', '/'));
+            if (!string.IsNullOrEmpty(modsRoot) && System.IO.Directory.Exists(modsRoot))
+                foreach (var other in System.IO.Directory.GetDirectories(modsRoot, "packs", SearchOption.AllDirectories))
+                    if (!string.Equals(other, packDir, StringComparison.OrdinalIgnoreCase))
+                        files.AddRange(System.IO.Directory.GetFiles(other, "*.json"));
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning("[DialogueBlips] 扫描兄弟 Mod 的 packs 失败（只用自己目录）：" + e.Message);
+        }
+        files.Sort((a, b) => string.Compare(a, b, StringComparison.OrdinalIgnoreCase));
         if (!string.Equals(modRoot, nextRoot, StringComparison.OrdinalIgnoreCase))
         {
             packOverrides.Clear(); packStructures.Clear(); overridesLoaded = false;
@@ -112,7 +127,7 @@ internal static class VoiceBank
         modRoot = modFolder ?? "";
         if (string.IsNullOrEmpty(modFolder)) return;
 
-        Array.Sort(files, StringComparer.OrdinalIgnoreCase);
+        files.Sort((a, b) => string.Compare(a, b, StringComparison.OrdinalIgnoreCase));
         foreach (var file in files)
         {
             try
@@ -578,15 +593,30 @@ internal static class VoiceBank
         return result;
     }
 
+    /// <summary>
+    /// 预设名解析。娘化包里的预设名带「（娘化）」后缀，而人物键映射用的是原角色名，
+    /// 所以查不到时再试一次带后缀的——这样映射表不用为每个包改一份。
+    /// </summary>
+    public static string ResolveName(string want)
+    {
+        if (string.IsNullOrEmpty(want)) return want;
+        if (presets.ContainsKey(want)) return want;
+        var suffixed = want + NyankoSuffix;
+        return presets.ContainsKey(suffixed) ? suffixed : want;
+    }
+
+    public const string NyankoSuffix = "（娘化）";
+
     /// <summary>某个预设有几层。面板的层选择用。</summary>
     public static int LayerCount(string preset)
     {
-        return presets.TryGetValue(preset, out var layers) ? layers.Count : 0;
+        return presets.TryGetValue(ResolveName(preset), out var layers) ? layers.Count : 0;
     }
 
     /// <summary>某层的波形编号与名字，面板显示用。</summary>
     public static int WaveOf(string preset, int layerIndex)
     {
+        preset = ResolveName(preset);
         if (!presets.TryGetValue(preset, out var layers) || layerIndex < 0 || layerIndex >= layers.Count)
             return 0;
         return layers[layerIndex].p != null
@@ -598,6 +628,7 @@ internal static class VoiceBank
     public static bool TryGet(string preset, int layerIndex, string slot, out float value)
     {
         value = 0f;
+        preset = ResolveName(preset);
         if (!presets.TryGetValue(preset, out var layers)
             || layerIndex < 0 || layerIndex >= layers.Count) return false;
         var layer = layers[layerIndex];
@@ -615,6 +646,7 @@ internal static class VoiceBank
     /// <summary>改某层的一个参数：改内存、记进 overrides、丢掉旧的 clip 池。</summary>
     public static bool Set(string preset, int layerIndex, string slot, float value)
     {
+        preset = ResolveName(preset);
         if (!presets.TryGetValue(preset, out var layers)
             || layerIndex < 0 || layerIndex >= layers.Count) return false;
         try { VoiceValidation.Value(slot, value); }

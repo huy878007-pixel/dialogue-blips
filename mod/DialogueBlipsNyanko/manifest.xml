@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModManifest>
+  <ID>player.dialogueblips.nyanko</ID>
+  <Name>对话音效 · 娘化音色包</Name>
+  <Author>Questing Goose 音色组</Author>
+  <ModVersion>0.2.0</ModVersion>
+  <Description>为 16 位有娘化立绘、且原本为男性的角色重新设计的专属音色。纯数据包，不含程序集。需同时启用「对话音效 · 逐字语音」与「深空娘化：可能有点好看」；两者都在时本包自动接管，否则自动退回原版音色。埃莉诺本身就是女性、索耶没有娘化立绘，二者不参与，保留原声。</Description>
+  <GameVersions>
+    <Version>0.46D</Version>
+  </GameVersions>
+  <Prerequisites>
+    <Mod>player.dialogueblips</Mod>
+    <Mod>player.launchgiftportraits</Mod>
+  </Prerequisites>
+  <Assemblies />
+  <Capabilities />
+</ModManifest>

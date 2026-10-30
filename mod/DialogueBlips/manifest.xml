@@ -3,8 +3,8 @@
   <ID>player.dialogueblips</ID>
   <Name>对话音效 · 逐字语音</Name>
   <Author>Questing Goose 音色组</Author>
-  <ModVersion>0.1.2</ModVersion>
-  <Description>程序化对话逐字音效，内置 4 种通用音色与 18 个具名角色预设。支持 F11 分级调音、音色包切换与本地 Agent 调参。</Description>
+  <ModVersion>0.2.0</ModVersion>
+  <Description>程序化对话逐字音效，内置 4 种通用音色与 18 个具名角色预设。支持 F11 分级调音、音色包切换与本地 Agent 调参。另附娘化音色包（16 位角色），需配套娘化立绘。</Description>
   <GameVersions>
     <Version>0.46D</Version>
   </GameVersions>
