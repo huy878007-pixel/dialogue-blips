@@ -126,9 +126,36 @@ def main() -> int:
             low = name.lower()
             assert not any(part in low for part in FORBIDDEN), f"包里有开发文件：{name}"
 
+    # ---- 创意工坊版：manifest.xml 必须在项目根目录 ----
+    # 手工安装的包套了一层 player.dialogueblips/，直接传给工坊会让玩家的
+    # 工坊目录变成 <id>/player.dialogueblips/manifest.xml，游戏在根目录
+    # 找不到清单，报「无法安装 / 要更新清单文件」。所以工坊要另发一个根层包。
+    workshop = output / "workshop"
+    if workshop.exists():
+        shutil.rmtree(workshop)
+    workshop.mkdir()
+    for file in sorted(stage.rglob("*")):
+        if file.is_file():
+            destination = workshop / file.relative_to(stage)
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(file, destination)
+    assert (workshop / "manifest.xml").exists(), "工坊包根目录缺 manifest.xml"
+    assert (workshop / "DialogueBlips.dll").exists(), "工坊包根目录缺 DLL"
+
+    workshop_zip = output / f"DialogueBlips-{version}-workshop.zip"
+    entries = [f for f in sorted(workshop.rglob("*")) if f.is_file()]
+    with zipfile.ZipFile(workshop_zip, "x", compression=zipfile.ZIP_DEFLATED) as zipped:
+        for file in entries:
+            zipped.write(file, file.relative_to(workshop))       # 根层，不套目录
+    with zipfile.ZipFile(workshop_zip) as zipped:
+        tops = {n.split("/")[0] for n in zipped.namelist() if "/" not in n}
+        assert "manifest.xml" in tops, "工坊 zip 的 manifest.xml 不在根层"
+
     manifest = {
         "version": version,
         "archive": archive.name,
+        "workshopArchive": workshop_zip.name,
+        "workshopSHA256": hashlib.sha256(workshop_zip.read_bytes()).hexdigest().upper(),
         "sha256": hashlib.sha256(archive.read_bytes()).hexdigest().upper(),
         "dllSHA256": hashlib.sha256(dll.read_bytes()).hexdigest().upper(),
         "packs": list(PACK_FILES),
@@ -141,7 +168,8 @@ def main() -> int:
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
 
     print(f"PASS release {version}")
-    print(f"  {archive.name}  {manifest['sha256'][:16]}...  {len(manifest['files'])} files")
+    print(f"  {archive.name}  {manifest['sha256'][:16]}...  {len(manifest['files'])} files  （手工安装：整层文件夹）")
+    print(f"  {workshop_zip.name}  {manifest['workshopSHA256'][:16]}...  （创意工坊：manifest.xml 在根层）")
     print(f"  {output}")
     return 0
 
