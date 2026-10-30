@@ -74,3 +74,9 @@ dotnet run -- serve 8731      # http://127.0.0.1:8731/
 
 游戏文本、剧情提取物与游戏美术资源**不在本仓库内**——它们属于游戏版权方。
 `characters.json` 只包含让 Mod 工作需要的最少量角色名与本地化键。
+
+
+## 音色设计方法
+
+音色是怎么设计出来的、公式与踩过的坑，都写在 [skill/blip-voice-design/SKILL.md](skill/blip-voice-design/SKILL.md)。
+改音色之前先读它，能省掉一轮返工。
