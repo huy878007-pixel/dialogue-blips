@@ -202,6 +202,10 @@ def build_pack(base_doc, presets):
     doc["replaces"] = ["questinggoose.vanilla"]
     doc["requiresMod"] = "3828971372"
     doc["version"] = "1.0.0"
+    # 预设名与原角色同名，mapping 直接对应，无需改写
+    missing = [t for t in (doc.get("mapping") or {}).values() if t not in presets]
+    if missing:
+        raise SystemExit("mapping 指向不存在的预设：" + "、".join(missing))
     doc["note"] = ("16 位有娘化立绘且原本为男性的角色按立绘+剧情重新设计；"
                    "埃莉诺本身就是女性，与通用音色、索耶一同保留原声。"
                    "材质分六族：正弦/方波/三角/锯齿/哨音/破波。")
@@ -247,14 +251,14 @@ def main():
             ep["DecayTime"] = env_for(e_ms, e_atk, e_sus)
             built.append({"hz": e_hz, "gain": gain, "delay": delay, "mute": False, "p": ep})
 
-        out[name + NYANKO_SUFFIX] = built
+        out[name] = built   # 正式包与原角色同名；后缀只在网页工作台里用
 
     write(build_pack(base, out))
 
     W = {0: "方波", 1: "锯齿", 2: "正弦", 4: "三角", 7: "哨音", 8: "破波"}
     print(f"[OK] {DST.name}  {DST.stat().st_size/1024:.1f} KB  {len(out)} 个预设")
     print(f"{'角色':<16}{'Hz':>6}{'材质':>6}{'层':>3}{'时长':>9}")
-    rows = sorted(((n, d[0], W.get(d[1], d[1]), d[2], len(out[n + NYANKO_SUFFIX]))
+    rows = sorted(((n, d[0], W.get(d[1], d[1]), d[2], len(out[n]))
                    for n, d in DESIGNS.items()), key=lambda x: x[1])
     for name, hz, mat, ms_, depth in rows:
         print(f"{name:<16}{hz:>6.0f}{mat:>6}{depth:>3}{ms_:>7} ms")

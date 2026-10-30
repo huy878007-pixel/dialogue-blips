@@ -79,6 +79,11 @@ def main():
                     mutate(bad)
                     check(name + " rejected atomically", bad, False)
                 check("UTF-8 BOM accepted", good, bom=True)
+                # 出厂的两个包也要过同一套校验：娘化包曾经因为 mapping 指向
+                # 不存在的预设而在游戏里整个载入失败，网页端完全看不出来。
+                for shipped in ("questinggoose.vanilla.json", "questinggoose.nyanko.json"):
+                    check("shipped " + shipped + " is valid",
+                          json.loads((ROOT / "packs" / shipped).read_text(encoding="utf-8-sig")))
             finally:
                 server.terminate()
                 server.wait(timeout=8)
