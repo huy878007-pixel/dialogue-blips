@@ -330,6 +330,68 @@ L3 爆破 2500 / gain 0.25 / 白噪 / 约 13 ms / Lp 0.80          ← 预渲染
 
 ---
 
+---
+
+## 落地：从参数到音色包
+
+设计定稿只是前半程，参数写进 `packs/*.json` 才算生效。这一步有两个会**静默失败**的地方。
+
+### 文件结构
+
+```json
+{
+  "format": "dsp-voicepack/1",
+  "id": "questinggoose.vanilla",
+  "name": "原版音色包",
+  "target": "vanilla",
+  "requires": { "gameBuild": 26284217, "paramCount": 31 },
+  "characters": { "officer_lun": { "...": "..." } },
+  "presets": {
+    "伦警官": [
+      { "hz": 118, "gain": 1.0, "delay": 0, "mute": false,
+        "p": { "WaveType": 0, "AttackTime": 0.025, "DecayTime": 0.16, "LpFilterCutoff": 0.50 } }
+    ]
+  },
+  "mapping": { "officer_lun": "伦警官" }
+}
+```
+
+- `target`：`vanilla` 或 `nyanko`，决定它在什么情况下自动接管
+- `presets`：预设名 → 层数组；层里 `hz` / `gain` / `delay` / `mute`，其余 31 个合成参数全在 `p`
+- `mapping`：角色键 → 预设名
+
+### 三条硬规则
+
+1. **`mapping` 的每个目标必须存在于 `presets`。** 少一个，整包被判无效，游戏里直接消失，而且**不报错**——这是最难查的一类问题。
+2. **出厂包用原角色名做预设名**，不要加 `_v2`、`-fix` 之类后缀；后缀只留在本地工作台。
+3. **不要手改发布 zip。** 改 pack → 跑构建脚本，脚本会校验 Release 构建、许可与源码齐全。
+
+### 验收
+
+```bash
+python test_pack.py        # 包结构与 mapping 校验
+python build_release.py    # 出包 + 哈希，产物在 dist/release-<版本>/
+```
+
+### 三个入口，别混用
+
+| 入口 | 用途 | 生效条件 |
+|---|---|---|
+| 工作台 `http://127.0.0.1:8731` | 设计期试听、批量改参数 | 本地开发环境 |
+| 游戏内 F11 面板 | 验收、微调 | 装好 Mod |
+| `voice-request.json` | 让外部 Agent 直接改游戏内音色 | **F11 面板打开时**才轮询 |
+
+外部 Agent 的请求格式：
+
+```json
+{ "id": "2026-10-30T14:20:00", "pack": "娘化音色包",
+  "set": { "埃莉诺|0|hz": 120, "埃莉诺|0|LpFilterCutoff": 0.68 },
+  "audition": "埃莉诺" }
+```
+
+`id` 变了才会重新执行；当前状态会回写到 `voice-state.json`。不联网、不开端口，面板一关就停止轮询。
+
+接口细节见 `实时调音接口.md`，打包与许可要求见 `对接档案_上传_*.md`。
 ## 常见错误
 
 | 错法 | 后果 | 正解 |
@@ -385,3 +447,5 @@ L3 爆破 2500 / gain 0.25 / 白噪 / 约 13 ms / Lp 0.80          ← 预渲染
 - [ ] 最高音没有超过 ~950 Hz（女声）
 - [ ] 出厂包跑过校验：每个 `mapping` 目标都能在 `presets` 里找到
 - [ ] 参与改动的角色都核对过原始性别，且有立绘依据
+- [ ] 跑过 `test_pack.py`，`mapping` 全部命中 `presets`
+- [ ] 出厂预设名没有加后缀
