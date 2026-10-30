@@ -30,6 +30,7 @@ public class DialogueBlipsMod : IMod
 
     readonly Dictionary<TypewriterCore, UnityAction<char>> bound = new Dictionary<TypewriterCore, UnityAction<char>>();
     bool enabled;
+    bool bankLoaded;
     /// <summary>游戏原生的打字机音源（三个气泡可能各有一份）。</summary>
     readonly List<AudioSource> nativeSources = new List<AudioSource>();
 
@@ -64,18 +65,27 @@ public class DialogueBlipsMod : IMod
         VolumeGain.OnChanged += _ => { if (enabled) ReapplyAudio(); };
     }
 
+    void OnFolderReady(string folder) => TryLoadVoiceBank();
+
+    /// <summary>目录一旦可用就加载音色包（工坊版 Init 阶段还拿不到目录）。</summary>
+    void TryLoadVoiceBank()
+    {
+        if (bankLoaded || !PersonaResolver.Loaded || string.IsNullOrEmpty(PersonaResolver.Folder)) return;
+        VoiceBank.Load(PersonaResolver.Folder);
+        VoiceBank.FinishLoading(PersonaResolver.Folder);
+        bankLoaded = true;
+    }
+
     public void OnEnable()
     {
         if (enabled) return;
         enabled = true;
         Current = this;
         SceneManager.sceneLoaded += OnSceneLoaded;
+        PersonaResolver.FolderReady -= OnFolderReady;
+        PersonaResolver.FolderReady += OnFolderReady;
         PersonaResolver.EnsureLoaded(manifest?.ID);
-        if (PersonaResolver.Loaded)
-        {
-            VoiceBank.Load(PersonaResolver.Folder);
-            VoiceBank.FinishLoading(PersonaResolver.Folder);
-        }
+        TryLoadVoiceBank();
         EnsureSource();
         ReapplyAudio();
         Bind();
@@ -86,6 +96,8 @@ public class DialogueBlipsMod : IMod
     {
         if (!enabled) return;
         enabled = false;
+        bankLoaded = false;
+        PersonaResolver.FolderReady -= OnFolderReady;
         Panel.Shutdown();
         VoiceAgent.Reset();
         if (source != null) source.Stop();

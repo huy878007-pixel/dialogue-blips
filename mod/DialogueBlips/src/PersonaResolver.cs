@@ -50,6 +50,12 @@ internal static class PersonaResolver
     /// <summary>本模组目录（拿到后缓存，供 VoiceBank 读 packs）。</summary>
     public static string Folder { get; private set; }
 
+    static bool folderNotified;
+
+    /// <summary>目录首次解析成功时触发一次：工坊版在 Init 阶段还拿不到目录，
+    /// 音色包要等这里回调之后再加载。</summary>
+    public static event Action<string> FolderReady;
+
     /// <summary>惰性加载：Init 阶段 ModLoader.Mods 可能还没登记本模组，拿不到目录。
     /// 所以推迟到 OnEnable 或第一次真正要用的时候再试。</summary>
     public static void EnsureLoaded(string modId)
@@ -88,6 +94,7 @@ internal static class PersonaResolver
             return;
         }
         Folder = folder;
+        if (!folderNotified) { folderNotified = true; FolderReady?.Invoke(folder); }
         bySprite.Clear(); byKey.Clear(); genericPreset.Clear();
         foreach (var pair in doc.generic ?? new Dictionary<string, Dictionary<string, string>>())
             if (pair.Value != null)
@@ -133,6 +140,23 @@ internal static class PersonaResolver
         {
             var guess = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Mods", modId));
             if (System.IO.Directory.Exists(guess)) return guess;
+        }
+        catch { /* 忽略 */ }
+
+        // 兜底：工坊目录 <steamapps>/workshop/content/<appid>/<itemid>
+        // 工坊版的目录不在 Mods/ 下，ModHelper 在 Init 阶段也可能还没登记。
+        try
+        {
+            var steamapps = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", ".."));
+            var root = Path.Combine(steamapps, "workshop", "content", "4348910");
+            if (System.IO.Directory.Exists(root))
+                foreach (var dir in System.IO.Directory.GetDirectories(root))
+                {
+                    var manifest = Path.Combine(dir, "manifest.xml");
+                    if (System.IO.File.Exists(manifest) &&
+                        System.IO.File.ReadAllText(manifest).Contains("<ID>" + modId + "</ID>"))
+                        return dir;
+                }
         }
         catch { /* 忽略 */ }
         return null;

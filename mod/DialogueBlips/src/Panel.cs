@@ -188,9 +188,9 @@ internal static class Panel
             b.End();
         }
         b.BeginRow(ROW_SPACING, TextAnchor.MiddleLeft);
-        b.AddButton("＋ 添加音色包…", ShowPacksFolder).WithTooltip("打开音色包文件夹");
+        b.AddButton("＋ 添加音色包…", ShowPacksFolder).WithTooltip(PacksTip());
         Shrink(b);
-        b.AddButton("重新扫描", Rescan).WithTooltip("丢进新文件后不用重启游戏");
+        b.AddButton("重新扫描", Rescan).WithTooltip(PacksTip() + "\n放好文件后点这里，不用重启游戏。");
         Shrink(b);
         b.End();
         b.AddSpace(SECTION_GAP);
@@ -261,7 +261,7 @@ internal static class Panel
         Shrink(b);
         b.End();
         b.BeginRow(0f, TextAnchor.MiddleCenter);
-        b.AddButton("导出当前音色包", Export);
+        b.AddButton("导出当前音色包", Export).WithTooltip(ExportsTip());
         Shrink(b);
         b.AddButton("保存改动", SaveIfNeeded);
         Shrink(b);
@@ -596,12 +596,23 @@ internal static class Panel
         return sb.ToString().Trim('-');
     }
 
+    static string ModFolderTip() => PersonaResolver.Folder ?? "<本 Mod 目录>";
+
+    static string PacksTip() =>
+        "导入目录：" + Path.Combine(ModFolderTip(), "packs") + "｜把 .json 丢进去，再点「重新扫描」";
+
+    static string ExportsTip() =>
+        "导出目录：" + Path.Combine(ModFolderTip(), "exports") + "｜导出的包不会自动加载，要用就挪进 packs/ 再「重新扫描」";
+
     static void ShowPacksFolder()
     {
         var folder = Path.Combine(PersonaResolver.Folder ?? "", "packs");
-        Debug.Log($"{Tag} 音色包文件夹：{folder}");
-        try { System.Diagnostics.Process.Start("explorer.exe", folder.Replace('/', '\\')); }
-        catch (Exception e) { Debug.LogWarning($"{Tag} 打开文件夹失败：{e.Message}"); }
+        try
+        {
+            GUIUtility.systemCopyBuffer = folder;
+            Debug.Log($"{Tag} 音色包文件夹路径已复制到剪贴板：{folder}");
+        }
+        catch (Exception e) { Debug.LogWarning($"{Tag} 复制路径失败：{e.Message}"); }
     }
 
     static void RebuildCast()
