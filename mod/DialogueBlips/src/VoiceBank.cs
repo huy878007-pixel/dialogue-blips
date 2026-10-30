@@ -91,28 +91,17 @@ internal static class VoiceBank
         var previousDocs = sameRoot ? new Dictionary<string, JObject>(packDocs) : new Dictionary<string, JObject>();
         // Never tear down a working library because a rescan cannot read its directory.
         var packDir = Path.Combine(nextRoot, "packs");
-        // 音色包可以放在别的 Mod 里（娘化包就是独立的纯数据 Mod）。
-        // 先扫自己的 packs/，再把 Mods/ 下所有兄弟 Mod 的 packs/ 也扫进来。
-        var files = new List<string>();
-        try { files.AddRange(System.IO.Directory.GetFiles(packDir, "*.json")); }
+        // packs/ 是导入目录：内置包和玩家自己丢进来的包都放这里，导出走 exports/。
+        string[] files;
+        try { files = System.IO.Directory.GetFiles(packDir, "*.json"); }
         catch (Exception e)
         {
             Debug.LogWarning("[DialogueBlips] 扫描失败，保留当前声音库：" + e.Message);
             return;
         }
-        try
-        {
-            var modsRoot = Path.GetDirectoryName(nextRoot.TrimEnd('\\', '/'));
-            if (!string.IsNullOrEmpty(modsRoot) && System.IO.Directory.Exists(modsRoot))
-                foreach (var other in System.IO.Directory.GetDirectories(modsRoot, "packs", SearchOption.AllDirectories))
-                    if (!string.Equals(other, packDir, StringComparison.OrdinalIgnoreCase))
-                        files.AddRange(System.IO.Directory.GetFiles(other, "*.json"));
-        }
-        catch (Exception e)
-        {
-            Debug.LogWarning("[DialogueBlips] 扫描兄弟 Mod 的 packs 失败（只用自己目录）：" + e.Message);
-        }
-        files.Sort((a, b) => string.Compare(a, b, StringComparison.OrdinalIgnoreCase));
+        // 导出目录一启动就建好，玩家能直接看到往哪儿导出。
+        try { System.IO.Directory.CreateDirectory(Path.Combine(nextRoot, "exports")); }
+        catch { /* 只读安装时建不出来也没关系，导出时会再试一次 */ }
         if (!string.Equals(modRoot, nextRoot, StringComparison.OrdinalIgnoreCase))
         {
             packOverrides.Clear(); packStructures.Clear(); overridesLoaded = false;
@@ -127,7 +116,7 @@ internal static class VoiceBank
         modRoot = modFolder ?? "";
         if (string.IsNullOrEmpty(modFolder)) return;
 
-        files.Sort((a, b) => string.Compare(a, b, StringComparison.OrdinalIgnoreCase));
+        Array.Sort(files, StringComparer.OrdinalIgnoreCase);
         foreach (var file in files)
         {
             try
@@ -335,10 +324,15 @@ internal static class VoiceBank
 
         if (string.IsNullOrWhiteSpace(id) || Path.GetFileName(id) != id || id.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
             throw new ArgumentException("非法包文件名");
-        var path = Path.Combine(modRoot, "packs", id + ".json");
+        // 导出到 exports/，和读取用的 packs/ 分开：
+        // 混在一起的话，导出的包会被当成可用音色包立刻加载，玩家分不清哪个是自己做的。
+        var exportDir = Path.Combine(modRoot, "exports");
+        System.IO.Directory.CreateDirectory(exportDir);
+        var path = Path.Combine(exportDir, id + ".json");
         VoiceValidation.Pack(doc);
         AtomicFile.Write(path, doc.ToString());
-        Debug.Log($"[DialogueBlips] 已导出音色包：{path}（{presets.Count} 个预设）");
+        Debug.Log($"[DialogueBlips] 已导出音色包：{path}（{presets.Count} 个预设）。"
+                  + "想让它出现在游戏里，把文件挪进 packs/ 再按刷新。");
         return path;
     }
 
