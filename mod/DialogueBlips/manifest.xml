@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModManifest>
+  <ID>player.dialogueblips</ID>
+  <Name>对话音效 · 逐字语音</Name>
+  <Author>Questing Goose 音色组</Author>
+  <ModVersion>0.1.2</ModVersion>
+  <Description>程序化对话逐字音效，内置 4 种通用音色与 18 个具名角色预设。支持 F11 分级调音、音色包切换与本地 Agent 调参。</Description>
+  <GameVersions>
+    <Version>0.46D</Version>
+  </GameVersions>
+  <Assemblies>
+    <Assembly>DialogueBlips.dll</Assembly>
+  </Assemblies>
+  <Capabilities>
+    <!-- 读写预设包与配置；不需要 network（Agent 接口用文件协议） -->
+    <Capability>files</Capability>
+  </Capabilities>
+</ModManifest>

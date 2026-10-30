@@ -1,0 +1,228 @@
+{
+ "format": "dsp-characters/1",
+ "note": "人物键表。nameKeys 按优先级尝试；运行时用 GetLocalizedClientName 现算显示名比对。",
+ "generic": {
+  "MALE": {
+   "FORMAL": "男老",
+   "INFORMAL": "男年轻"
+  },
+  "FEMALE": {
+   "FORMAL": "女老年",
+   "INFORMAL": "女年轻"
+  },
+  "NEUTRAL": {
+   "FORMAL": "女老年",
+   "INFORMAL": "女年轻"
+  }
+ },
+ "characters": [
+  {
+   "key": "georgio",
+   "nameKeys": [
+    "name_georgio"
+   ],
+   "zh": "乔治奥",
+   "preset": "乔治奥",
+   "tier": "story",
+   "spriteNames": [
+    "george"
+   ]
+  },
+  {
+   "key": "eleanor",
+   "nameKeys": [
+    "name_eleanor"
+   ],
+   "zh": "埃莉诺",
+   "preset": "埃莉诺",
+   "tier": "story",
+   "spriteNames": [
+    "eleanor",
+    "eleanor_scav",
+    "eleanor_rev"
+   ]
+  },
+  {
+   "key": "serpico",
+   "nameKeys": [
+    "name_serpico"
+   ],
+   "zh": "实习警员塞尔皮科",
+   "preset": "塞尔皮科",
+   "tier": "story",
+   "spriteNames": [
+    "serpico",
+    "serpico_scav",
+    "serpico_rev"
+   ]
+  },
+  {
+   "key": "officer_lun",
+   "nameKeys": [
+    "name_officer_lun",
+    "name_lun"
+   ],
+   "zh": "伦警官",
+   "preset": "伦警官",
+   "tier": "story",
+   "spriteNames": [
+    "officer_lun"
+   ]
+  },
+  {
+   "key": "lou",
+   "nameKeys": [
+    "name_lou"
+   ],
+   "zh": "卢",
+   "preset": "卢",
+   "tier": "story",
+   "spriteNames": [
+    "lou"
+   ]
+  },
+  {
+   "key": "mentor",
+   "nameKeys": [
+    "name_mentor",
+    "name_the_mentor"
+   ],
+   "zh": "导师",
+   "preset": "导师",
+   "tier": "tutorial",
+   "spriteNames": [
+    "mentor",
+    "the_mentor"
+   ]
+  },
+  {
+   "key": "landlord",
+   "nameKeys": [
+    "name_landlord",
+    "name_the_landlord"
+   ],
+   "zh": "房东",
+   "preset": "房东",
+   "tier": "tutorial",
+   "spriteNames": [
+    "landlord",
+    "the_landlord"
+   ]
+  },
+  {
+   "key": "sawyer",
+   "nameKeys": [
+    "name_sawyer"
+   ],
+   "zh": "索耶",
+   "preset": "索耶",
+   "tier": "tutorial",
+   "spriteNames": [
+    "sawyer"
+   ]
+  },
+  {
+   "key": "joe_wild",
+   "nameKeys": [
+    "name_joe_wild",
+    "name_joe"
+   ],
+   "zh": "乔·王尔德",
+   "preset": "乔·王尔德",
+   "tier": "tutorial",
+   "spriteNames": [
+    "joe"
+   ]
+  },
+  {
+   "key": "dr_jackson",
+   "nameKeys": [
+    "name_dr._jackson"
+   ],
+   "zh": "杰克逊博士",
+   "preset": "杰克逊博士",
+   "tier": "tutorial",
+   "spriteNames": []
+  },
+  {
+   "key": "the_butcher",
+   "nameKeys": [
+    "name_the_butcher"
+   ],
+   "zh": "屠夫",
+   "preset": "屠夫",
+   "tier": "wanted",
+   "spriteNames": []
+  },
+  {
+   "key": "odin",
+   "nameKeys": [
+    "name_odin"
+   ],
+   "zh": "奥丁·哈拉尔德森",
+   "preset": "奥丁",
+   "tier": "wanted",
+   "spriteNames": []
+  },
+  {
+   "key": "juan",
+   "nameKeys": [
+    "name_juan"
+   ],
+   "zh": "胡安",
+   "preset": "胡安",
+   "tier": "wanted",
+   "spriteNames": []
+  },
+  {
+   "key": "arthur_lafleur",
+   "nameKeys": [
+    "name_arthur_lafleur"
+   ],
+   "zh": "亚瑟·拉弗勒",
+   "preset": "亚瑟·拉弗勒",
+   "tier": "wanted",
+   "spriteNames": []
+  },
+  {
+   "key": "james_bailey",
+   "nameKeys": [
+    "name_james_bailey"
+   ],
+   "zh": "詹姆斯·贝利",
+   "preset": "詹姆斯·贝利",
+   "tier": "wanted",
+   "spriteNames": []
+  },
+  {
+   "key": "john_smith",
+   "nameKeys": [
+    "name_john_smith"
+   ],
+   "zh": "约翰·史密斯",
+   "preset": "约翰·史密斯",
+   "tier": "wanted",
+   "spriteNames": []
+  },
+  {
+   "key": "li_bei_wen",
+   "nameKeys": [
+    "name_li_bei_wen"
+   ],
+   "zh": "李北文",
+   "preset": "李北文",
+   "tier": "wanted",
+   "spriteNames": []
+  },
+  {
+   "key": "leroy",
+   "nameKeys": [
+    "name_leroy"
+   ],
+   "zh": "勒鲁瓦",
+   "preset": "勒鲁瓦",
+   "tier": "wanted",
+   "spriteNames": []
+  }
+ ]
+}

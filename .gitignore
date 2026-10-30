@@ -1,0 +1,41 @@
+# ---- 构建产物 ----
+bin/
+obj/
+releases/
+*.dll
+*.pdb
+*.deps.json
+
+# ---- Python ----
+__pycache__/
+*.pyc
+
+# ---- 本地运行状态（含个人调音，不进仓库）----
+overrides.json
+overrides.json.bak*
+voice-request.json
+voice-state.json
+console-state.json
+browser-state-*.json
+http-state-*.json
+*.log
+
+# ---- 生成物与备份 ----
+backups/
+deprecated/
+dist/
+bfxr-samples/
+
+# ---- 第三方参考仓库（别人的代码，不转存）----
+refs/
+
+# ---- 测试夹具与生成音频（可重新生成）----
+checks/*/
+checks/__pycache__/
+
+# ---- 游戏文本与剧情提取物（游戏版权，不公开）----
+游戏本地化文本_正式版.json
+人物剧情_*.md
+通缉九人台词_*.md
+persona-map.json
+persona-map.md
